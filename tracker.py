@@ -318,11 +318,28 @@ def get_amount_str(amount):
 
 def load_json():
     global json_data
+    global COLOR
+    global N_DAYS
+    global N_MEAN
 
     try:
         with open(FILENAME, 'r') as fp:
             json_data = json.load(fp)
+        
+        if 'color' not in json_data:
+            json_data['color'] = COLOR
+        COLOR = True if json_data['color'] else False
+        
+        if 'n_days' not in json_data:
+            json_data['n_days'] = N_DAYS
+        N_DAYS = int(json_data['n_days'])
+
+        if 'n_mean' not in json_data:
+            json_data['n_mean'] = N_MEAN
+        N_MEAN = int(json_data['n_mean'])
     
+        save_json()
+
     except FileNotFoundError:
         print('Error: no such file {FILENAME}')
         exit(-1)
@@ -367,6 +384,8 @@ def toggle_color():
     global COLOR
     
     COLOR = not COLOR
+    json_data['color'] = COLOR
+    save_json()
     update_colors()
     view_all()    
 
@@ -410,8 +429,8 @@ def main():
     global old_json
     global last_error
 
-    update_colors()
     load_json()
+    update_colors()
 
     command_map = {
         'c': toggle_color,
@@ -483,8 +502,8 @@ def add_one(option, value):
         print(f'No such option: {option}')
         exit(-1)
 
-    update_colors()
     load_json()
+    update_colors()
     add_one_value(name_map[option], value)
 
 
@@ -495,8 +514,8 @@ if __name__ == '__main__':
         main()
 
     elif len(argv) == 2 and argv[1] == 'v':  
-        update_colors()
         load_json()
+        update_colors()
         view_all()
  
     elif len(argv) == 3:
