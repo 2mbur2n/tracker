@@ -9,8 +9,17 @@ import json
 import math
 import os 
 
+import plotly
+from plotly.graph_objs import Scatter, Layout
+
 N_MEAN = 7
 N_DAYS = 21
+
+NAME_MAP = {
+    'w': 'weight',
+    'm': 'minutes',
+    's': 'amount'
+}
 
 FILENAME = None
 
@@ -491,21 +500,71 @@ def add_one_value(name, value):
     view_all()
     print(f'\n{name}: {value}')
 
-def add_one(option, value):
-    name_map = {
-        'w': 'weight',
-        'm': 'minutes',
-        's': 'amount'
-    }
 
-    if option not in name_map:
+def add_one(option, value):
+    global NAME_MAP
+
+    if option not in NAME_MAP:
         print(f'No such option: {option}')
         exit(-1)
 
     load_json()
     update_colors()
-    add_one_value(name_map[option], value)
+    add_one_value(NAME_MAP[option], value)
 
+def plot_one(option):
+    global json_data
+    global NAME_MAP
+
+    if option not in ['s', 'w', 'm']:
+        print(f'No such option: {option}')
+        exit(-1)
+
+    name = NAME_MAP[option]
+
+    load_json()
+    print('Start Date')
+    start = get_date()
+    start_str = get_date_str(start)
+    print('\nEnd Date')
+    end = get_date() 
+    end_str = get_date_str(end)
+
+    mean_list = []
+    x = []
+    y = []
+
+    while get_date_str(start) != get_date_str(end + timedelta(days=1)):
+        date = get_date_str(start)
+        if date in json_data[name]:
+            if name == 'amount':
+                sum = 0
+                for item in json_data[name][date]:
+                    sum += float(item)
+                value = sum
+            else:
+                value = float(json_data[name][date])
+            mean_list.append(value)
+        elif name in ['minutes' or 'amount']:
+            mean_list.append(0)
+        while len(mean_list) > N_MEAN:
+            mean_list.pop(0)
+        mean_value = get_weighted_mean(mean_list)
+        x.append(get_nice_date_str(start))
+        y.append(mean_value)
+        start += timedelta(days=1)
+   
+    title_map = {
+        'amount': 'Spending',
+        'weight': 'Weight',
+        'minutes': 'Minutes'
+    }
+    title = f'{title_map[name]} ({start_str} - {end_str})'
+    plotly.offline.plot({
+        'data': [Scatter(x=x, y=y)],
+        'layout': Layout(title=title, font={'size':18})
+    })
+    
 
 if __name__ == '__main__':
     FILENAME = 'tracker.dat'
@@ -519,9 +578,13 @@ if __name__ == '__main__':
         view_all()
  
     elif len(argv) == 3:
-        add_one(argv[1], argv[2])
+        if argv[1] == 'p':
+            plot_one(argv[2])
+        else:
+            add_one(argv[1], argv[2])
     
     else:
         print('python', argv[0], 'w|m|s|v', 'value')
+        print('python', argv[0], 'p', 'w|m|s')
     
 
