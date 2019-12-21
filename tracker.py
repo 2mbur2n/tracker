@@ -10,10 +10,12 @@ import math
 import os 
 
 import plotly
-from plotly.graph_objs import Scatter, Layout
+from plotly.graph_objs import Scatter, Layout, Figure
+from plotly.subplots import make_subplots
 
 N_MEAN = 7
 N_DAYS = 21
+INCHES = 72
 
 NAME_MAP = {
     'w': 'weight',
@@ -276,9 +278,6 @@ def get_date():
         
     try:
         result = datetime(year+2000, month, day)
-        first = today - timedelta(days=N_DAYS)
-        if result < first or today < result:
-            raise ValueError
         return result
 
     except ValueError:
@@ -512,11 +511,55 @@ def add_one(option, value):
     update_colors()
     add_one_value(NAME_MAP[option], value)
 
+
+def plot_weight():
+    global json_data
+    load_json()
+    
+    print('Start Date')
+    start = get_date()
+    start_str = get_date_str(start)
+    print('\nEnd Date')
+    end = get_date() 
+    end_str = get_date_str(end)
+
+    mean_wt = []
+    x = []
+    y1 = []
+
+    while get_date_str(start) != get_date_str(end + timedelta(days=1)):
+        date = get_date_str(start)
+        if date in json_data['weight']:
+            value = float(json_data['weight'][date])
+            mean_wt.append(value)
+        while len(mean_wt) > N_MEAN:
+            mean_wt.pop(0)
+        wt = get_weighted_mean(mean_wt)
+        x.append(get_date_str(start))
+        y1.append(wt)
+        start += timedelta(days=1)
+   
+    title = f'Weight ({start_str} - {end_str})'
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(Scatter(x=x, y=y1, name='Weight', line={'color': 'blue'}), secondary_y=False)
+    fig.update_layout(
+        title=title, 
+        font={'size':20}, 
+        yaxis={
+            'range': [170,210]
+        },
+        xaxis={
+            'tickangle': 30
+        }
+    )
+    fig.show()
+
+
 def plot_one(option):
     global json_data
     global NAME_MAP
 
-    if option not in ['s', 'w', 'm']:
+    if option not in ['s', 'm']:
         print(f'No such option: {option}')
         exit(-1)
 
@@ -550,7 +593,7 @@ def plot_one(option):
         while len(mean_list) > N_MEAN:
             mean_list.pop(0)
         mean_value = get_weighted_mean(mean_list)
-        x.append(get_nice_date_str(start))
+        x.append(get_date_str(start))
         y.append(mean_value)
         start += timedelta(days=1)
    
@@ -579,12 +622,16 @@ if __name__ == '__main__':
  
     elif len(argv) == 3:
         if argv[1] == 'p':
-            plot_one(argv[2])
+            if argv[2] == 'w':
+                plot_weight()
+            else:
+                plot_one(argv[2])
         else:
             add_one(argv[1], argv[2])
     
     else:
-        print('python', argv[0], 'w|m|s|v', 'value')
+        print('python', argv[0], 'w|m|s', 'value')
+        print('python', argv[0], 'v')
         print('python', argv[0], 'p', 'w|m|s')
     
 
