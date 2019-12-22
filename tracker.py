@@ -20,7 +20,8 @@ INCHES = 72
 NAME_MAP = {
     'w': 'weight',
     'm': 'minutes',
-    's': 'amount'
+    's': 'amount',
+    'h': 'heart' 
 }
 
 FILENAME = None
@@ -84,6 +85,46 @@ def get_amount():
         return
 
     return amount 
+
+def set_heart():
+    global top_info
+    global last_error
+
+    systolic = input('Systolic: ')
+    if not systolic:
+        view_all()
+        return
+    if systolic.isdigit():
+        systolic = int(systolic)
+    else:
+        top_info = f'Invalid systolic: ${systolic}'
+        last_error = True
+        view_all()
+        return
+
+    diastolic = input('Diastolic: ')
+    if not diastolic:
+        return
+    if diastolic.isdigit():
+        diastolic = int(diastolic)
+    else:
+        top_info = f'Invalid diastolic: ${diastolic}'
+        last_error = True
+
+    pulse = input('Pulse: ')
+    if not pulse:
+        return
+    if pulse.isdigit():
+        pulse = int(pulse)
+    else:
+        top_info = f'Invalid pulse: ${pulse}'
+        last_error = True
+
+    date = current_date_str()
+    json_data['heart'][date] = {'systolic': systolic, 'diastolic': diastolic, 'pulse': pulse}
+    save_json()
+    top_info = f'Heart: {systolic}/{diastolic} {pulse}'
+    view_all()
 
 
 def add_spending():
@@ -220,6 +261,16 @@ def view_all():
         mean_minutes = f'{mean_minutes:0.0f}'.rjust(3)
         minutes = f'{minutes:0.0f}'.rjust(3) if minutes > 0 else '   '
 
+        # heart
+        if day in json_data['heart']:
+            item = json_data['heart'][day]
+            systolic = item['systolic']
+            diastolic = item['diastolic']
+            pulse = item['pulse']
+            heart = f'{systolic}/{diastolic} {pulse}'
+        else:
+            heart = ''
+
         # row 
         format = f'' if \
             get_date_str(current_date) == get_date_str(raw_day) \
@@ -230,7 +281,8 @@ def view_all():
             f'{YELLOW}{minutes}  '
             f'{LIGHT}{mean_minutes}{END}   '
             f'{GREEN}{amount_sum}  '
-            f'{LIGHT}{amount_mean}{END}')
+            f'{LIGHT}{amount_mean}{END}   '
+            f'{RED}{heart}{END}')
 
 
 def get_date():
@@ -423,6 +475,7 @@ def view_commands():
                f'{LINE}m{END}inutes  ' \
                f'{LINE}s{END}pending  ' \
                f'{LINE}w{END}eight  ' \
+               f'{LINE}h{END}eart  ' \
                f'{LINE}d{END}ate  ' \
                f'{LINE}c{END}olor  ' \
                f'{LINE}u{END}ndo  ' \
@@ -445,6 +498,7 @@ def main():
         's': add_spending,
         'm': set_minutes,
         'w': set_weight,
+        'h': set_heart,
         'd': set_date,
         'u': undo_last
     }
