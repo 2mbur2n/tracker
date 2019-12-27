@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from shutil import copyfile
@@ -209,7 +210,8 @@ def view_all():
     global N_MEAN
 
     print('\033[2J\033[0;0f')
-    print(f'{END}Date         Weight          Minutes     Spending')
+    #print(f'{END}Date         Weight          Minutes     Spending')
+    print(f'                                                 ')
     
     weight_list = []
     minutes_list = []
@@ -534,6 +536,27 @@ def add_one(option, value):
     update_colors()
     add_one_value(NAME_MAP[option], value)
 
+def calc_target_wt(current_date):
+    START_DATE = date(2019, 12, 26)
+    START_WEIGHT = 205
+    TARGET_SLOPE = 0.10
+    year = int(current_date.strftime("%Y"))
+    month = int(current_date.strftime("%m"))
+    day = int(current_date.strftime("%d"))
+    current_date = date(year, month, day)
+    days = (current_date - START_DATE).total_seconds() / (60*60*24)
+    return min(205, START_WEIGHT - days*TARGET_SLOPE)
+
+def calc_target_mins(current_date):
+    START_DATE = date(2019, 12, 29)
+    START_MINS = 10
+    TARGET_SLOPE = 5/7
+    year = int(current_date.strftime("%Y"))
+    month = int(current_date.strftime("%m"))
+    day = int(current_date.strftime("%d"))
+    current_date = date(year, month, day)
+    days = (current_date - START_DATE).total_seconds() / (60*60*24)
+    return min(45, max(0, START_MINS + days*TARGET_SLOPE))
 
 def plot_weight():
     global json_data
@@ -547,8 +570,12 @@ def plot_weight():
     end_str = get_date_str(end)
 
     mean_wt = []
+    mean_min = []
     x = []
     y1 = []
+    y2 = []
+    y3 = []
+    y4 = []
 
     while get_date_str(start) != get_date_str(end + timedelta(days=1)):
         date = get_date_str(start)
@@ -558,21 +585,41 @@ def plot_weight():
         while len(mean_wt) > N_MEAN:
             mean_wt.pop(0)
         wt = get_weighted_mean(mean_wt)
+        if date in json_data['minutes']:
+            value = float(json_data['minutes'][date])
+            mean_min.append(value)
+        else:
+            mean_min.append(0)
+        while len(mean_min) > N_MEAN:
+            mean_min.pop(0)
+        min_val = get_weighted_mean(mean_min)
         x.append(get_date_str(start))
         y1.append(wt)
+        y2.append(calc_target_wt(start))
+        y3.append(min_val)
+        y4.append(calc_target_mins(start))
         start += timedelta(days=1)
    
     title = f'Weight ({start_str} - {end_str})'
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(Scatter(x=x, y=y1, name='Weight', line={'color': 'blue'}), secondary_y=False)
+    fig.add_trace(Scatter(x=x, y=y1, name='weight', line={'color': 'blue'}), secondary_y=False)
+    fig.add_trace(Scatter(x=x, y=y2, name='target', line={'color': 'darkblue'}), secondary_y=False)
+#    fig.add_trace(Scatter(x=x, y=y3, name='time', line={'color': 'red'}), secondary_y=True)
+#    fig.add_trace(Scatter(x=x, y=y4, name='time (target)', line={'color': 'darkred'}), secondary_y=True)
     fig.update_layout(
         title=title, 
         font={'size':20}, 
         yaxis={
-            'range': [170,210]
+            'range': [170,210],
+            'title': 'pounds'
         },
+#        yaxis2={
+#            'title': 'minutes'
+#        },
         xaxis={
-            'tickangle': 30
+            'tickangle': 30,
+            'tickmode': 'auto',
+            'nticks': 30
         }
     )
     fig.show()
