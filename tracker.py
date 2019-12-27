@@ -47,8 +47,6 @@ def update_colors():
 top_info = ''
 last_error = False
 json_data = None
-old_json = []
-state_change = False
 current_date = datetime.now()
 
 def add_list_item(key, value):
@@ -407,11 +405,9 @@ def load_json():
 
 def save_json():
     global json_data
-    global state_change
 
     with open(FILENAME, 'w') as fp:
         json.dump(json_data, fp)
-    state_change = True
 
 
 def parse_date(date):
@@ -449,25 +445,6 @@ def toggle_color():
     update_colors()
     view_all()    
 
-
-def undo_last():
-    global top_info
-    global last_error
-    global old_json
-    global json_data
-    
-    if old_json:
-        json_data = old_json[-1]['json']
-        operation = old_json[-1]['name']
-        old_json.pop()
-        top_info = f'Undo {operation}'
-        view_all()
-    else:
-        top_info = 'Error: No operation'
-        last_error = True
-        view_all()
-
-
 def view_commands():
     global top_info
 
@@ -478,16 +455,13 @@ def view_commands():
                f'{LINE}h{END}eart  ' \
                f'{LINE}d{END}ate  ' \
                f'{LINE}c{END}olor  ' \
-               f'{LINE}u{END}ndo  ' \
                f'{LINE}q{END}uit' 
     view_all()
 
 
 def main():
     global top_info
-    global state_change
     global json_data
-    global old_json
     global last_error
 
     load_json()
@@ -499,8 +473,7 @@ def main():
         'm': set_minutes,
         'w': set_weight,
         'h': set_heart,
-        'd': set_date,
-        'u': undo_last
+        'd': set_date
     }
 
     view_all()
@@ -522,10 +495,6 @@ def main():
             last_json = deepcopy(json_data)
             print(f'{BOLD}', end='')
             command_map[command]()
-            if state_change:
-                old_json.append({'json': last_json, 'name': top_info})
-            state_change = False        
-        
 
         else:
             top_info = f'No such command: {raw_command}'
