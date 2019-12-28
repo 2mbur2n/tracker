@@ -1,0 +1,13 @@
+{
+    "weight-start": 210,
+    "weight-slope": -0.1,
+    "weight-min": 175,
+    "minutes-start": 10,
+    "minutes-slope": 0.3,
+    "minutes-max": 45,
+    "row-max": 21,
+    "mean-offset": 5,
+    "start-year": 2019,
+    "start-month": 12,
+    "start-day": 27
+}
