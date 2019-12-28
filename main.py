@@ -117,7 +117,8 @@ class View:
         sum = 0
         wsum = 0
         count = 0
-        w = [15, 10, 6, 3, 1]
+        w = [6, 3, 1]
+        
         for offset in range(View.MEAN_OFFSET):
             date_str = (date - datetime.timedelta(days=offset)).strftime("%m/%d/%y")
             if date_str in items:
