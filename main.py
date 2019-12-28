@@ -9,7 +9,6 @@ import sys
 class Loader:
     def __init__(self):
         self.weight = {}
-        self.time = {}
         self.minutes = {}
         self.spending = {}
         self.count = 0
@@ -20,9 +19,8 @@ class Loader:
                 date = line[0]
                 self.weight[date] = float(line[1])
                 self.minutes[date] = int(line[2])
-                self.time[date] = int(line[3]) 
                 sum = 0;
-                for amount in line[4].split('+'):
+                for amount in line[3].split('+'):
                     sum += float(amount)
                 self.spending[date] = sum
                 date = date.split('/')
@@ -34,9 +32,6 @@ class Loader:
 
         with open('params.dat', 'r') as fp:
             self.info = json.load(fp)
-    
-        with open('sunrise.dat', 'r') as fp:
-            self.sunrise = json.load(fp)
 
 class Graph:
     def build(title, x, yavg, range=None, ytrg=None):
@@ -110,9 +105,7 @@ class View:
         self.date = loader.last_date
         self.weight = loader.weight
         self.minutes = loader.minutes
-        self.time = loader.time
         self.spending = loader.spending
-        self.sunrise = loader.sunrise 
         self.info = loader.info
         View.ROW_MAX = min(loader.count, self.info['row-max'])
         Cursor.ROWS = View.ROW_MAX
