@@ -16,6 +16,8 @@ class Loader:
         with open('data.dat', 'r') as fp:
             for line in fp.readlines():
                 line = line.split()
+                if not line:
+                    continue
                 date = line[0]
                 self.weight[date] = float(line[1])
                 self.minutes[date] = int(line[2])
@@ -221,6 +223,8 @@ class View:
         #header = Cell(1, 1, Cursor.COLS, '250;7', header_str)
         #header.print()
         for row, items in self.cells.items():
+            if row == View.ROW_MAX:
+                self.cells[row][0].color = '15' 
             for item in self.cells[row]:
                 item.print()
             print()
