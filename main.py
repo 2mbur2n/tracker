@@ -56,31 +56,6 @@ class Graph:
         if range:
             fig.update_layout(yaxis={'range': range})
         fig.show()
-        
-    def build_time(title, x, yavg, sunrise):
-        ysun = []
-        for date in x:
-            ysun.append(sunrise[date])
-        fig = plotly.subplots.make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(plotly.graph_objs.Scatter(x=x, y=yavg, name='average', line={'color': 'blue'}), secondary_y=False)
-        fig.add_trace(plotly.graph_objs.Scatter(x=x, y=ysun, name='sunrise', line={'color': 'orange'}), secondary_y=False)
-        fig.update_layout(
-            title=title, 
-            font={'size':20}, 
-            xaxis={
-                'tickangle': 30,
-                'tickmode': 'auto',
-                'nticks': 30
-            },
-            yaxis={
-                'range': [270, 600], 
-                'tickmode': 'array',
-                'tickvals': [270, 300, 330, 360, 390, 420, 450, 480, 510, 540, 570, 600],
-                'ticktext': ['4:30', '5:00', '5:30', '6:00', '6:30', '7:00', '7:30', '8:00', '8:30', '9:00', '9:30', '10:00']
-            }
-        )
-        fig.show()
-        
 
 class Format:
     def time(val):
@@ -116,7 +91,7 @@ class Cell:
 
 
 class Cursor:
-    COLS = 69
+    COLS = 50
     ROWS = 0
 
     def set(row, col):
@@ -175,12 +150,6 @@ class View:
             self.plot_field(self.minutes, name) 
         elif name == 'spending':
             self.plot_field(self.spending, name)
-        elif name == 'start':
-            tm_norm = {}
-            for date_str, val in self.time.items():
-                norm = math.floor(val/100)*60 + val%100
-                tm_norm[date_str] = norm
-            self.plot_field(tm_norm, name)
         else:
             print(f'No such name: {name}')
 
@@ -209,20 +178,17 @@ class View:
         min_date = min_date.strftime("%m/%d/%y")
         max_date = max_date.strftime("%m/%d/%y")
         title = f'{name} ({min_date} - {max_date})'
-        if name == 'start':
-            Graph.build_time(title, x, yavg, self.sunrise)
+        if name == 'weight':
+            range = [170, 215]
         else:
-            if name == 'weight':
-                range = [170, 215]
-            else:
-                range = [0, max(yavg) * 1.1]
-            Graph.build(title, x, yavg, range, ytrg)
+            range = [0, max(yavg) * 1.1]
+        Graph.build(title, x, yavg, range, ytrg)
 
     def emit_all(self):
         self.cells = {}
         for row_idx in range(View.ROW_MAX):
             col = 1
-            row = row_idx + 2
+            row = row_idx + 1
             self.cells[row] = []
 
             date = self.date - datetime.timedelta(days=View.ROW_MAX - (row_idx + 1))
@@ -232,45 +198,35 @@ class View:
             col += 11
 
             wt = Format.weight(self.weight[date_str])
-            self.cells[row].append(Cell(row, col, 5, '230', wt)) 
+            self.cells[row].append(Cell(row, col, 5, '15', wt)) 
             col += 6
 
             wt_mean = Format.weight(self.calc_mean(self.weight, date))
-            self.cells[row].append(Cell(row, col, 5, '230;2', wt_mean)) 
+            self.cells[row].append(Cell(row, col, 5, '15;2', wt_mean)) 
             col += 6
 
             mins = Format.minutes(self.minutes[date_str])
-            self.cells[row].append(Cell(row, col, 4, '229', mins)) 
+            self.cells[row].append(Cell(row, col, 4, '11', mins)) 
             col += 5
 
             mins_mean = Format.minutes(self.calc_mean(self.minutes, date))
-            self.cells[row].append(Cell(row, col, 4, '229;2', mins_mean)) 
+            self.cells[row].append(Cell(row, col, 4, '11;2', mins_mean)) 
             col += 7
                         
-            tm = Format.time(self.time[date_str])
-            self.cells[row].append(Cell(row, col, 8, '228', tm))    
-            col += 9
- 
-            sun = self.sunrise[date_str]
-            sun = math.floor(sun/60)*100 + sun%60 
-            sun = Format.time(sun)
-            self.cells[row].append(Cell(row, col, 8, '226', sun))    
-            col += 10
-            
             spend = Format.money(self.spending[date_str])
-            self.cells[row].append(Cell(row, col, 7, '46', spend))    
+            self.cells[row].append(Cell(row, col, 7, '10', spend))    
             col += 8
         
             spend_mean = Format.money(self.calc_mean(self.spending, date))
-            self.cells[row].append(Cell(row, col, 7, '46;2', spend_mean))    
+            self.cells[row].append(Cell(row, col, 7, '10;2', spend_mean))    
             col += 9           
 
     def print_all(self):
         self.emit_all()
         Cursor.clear()
-        header_str = 'date       weight       duration    start    sunrise   spending      '
-        header = Cell(1, 1, Cursor.COLS, '250;7', header_str)
-        header.print()
+        #header_str = 'date       weight       duration    start    sunrise   spending      '
+        #header = Cell(1, 1, Cursor.COLS, '250;7', header_str)
+        #header.print()
         for row, items in self.cells.items():
             for item in self.cells[row]:
                 item.print()
