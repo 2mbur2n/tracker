@@ -224,7 +224,9 @@ class View:
         #header.print()
         for row, items in self.cells.items():
             if row == View.ROW_MAX:
-                self.cells[row][0].color = '15' 
+                today_str = datetime.date.today().strftime("%m/%d/%y")
+                if self.cells[row][0].str == today_str:
+                    self.cells[row][0].color = '15'
             for item in self.cells[row]:
                 item.print()
             print()
