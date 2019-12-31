@@ -6,7 +6,6 @@
     "minutes-slope": 0.3,
     "minutes-max": 45,
     "row-max": 21,
-    "mean-offset": 3,
     "start-year": 2019,
     "start-month": 12,
     "start-day": 26

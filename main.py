@@ -100,7 +100,6 @@ class Cursor:
 
 class View:
     ROW_MAX = 7
-    MEAN_OFFSET = 5
     
     def __init__(self):
         loader = Loader()
@@ -111,7 +110,6 @@ class View:
         self.info = loader.info
         View.ROW_MAX = min(loader.count, self.info['row-max'])
         Cursor.ROWS = View.ROW_MAX
-        View.MEAN_OFFSET = self.info['mean-offset']
 
     def calc_mean(self, items, date):
         sum = 0
@@ -119,7 +117,7 @@ class View:
         count = 0
         w = [6, 3, 1]
         
-        for offset in range(View.MEAN_OFFSET):
+        for offset in range(len(w)):
             date_str = (date - datetime.timedelta(days=offset)).strftime("%m/%d/%y")
             if date_str in items:
                 sum += items[date_str] * w[count]
