@@ -115,14 +115,13 @@ class View:
         sum = 0
         wsum = 0
         count = 0
-        w = [15, 10, 6, 3, 1]
+        w = [120, 105, 91, 78, 66, 55, 45, 36, 28, 21, 15, 10, 6, 3, 1]
         
         for offset in range(len(w)):
             date_str = (date - datetime.timedelta(days=offset)).strftime("%m/%d/%y")
             if date_str in items:
-                sum += items[date_str] * w[count]
-                wsum += w[count]
-                count += 1
+                sum += items[date_str] * w[offset]
+                wsum += w[offset]
         return sum / wsum
 
     def calc_target(self, name, date):
