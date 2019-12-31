@@ -187,9 +187,9 @@ class View:
 
             date = self.date - datetime.timedelta(days=View.ROW_MAX - (row_idx + 1))
             date_str = date.strftime("%m/%d/%y")
-            
-            self.cells[row].append(Cell(row, col, 8, '245', date_str))
-            col += 11
+            date_nice = date.strftime("%a %b %d")
+            self.cells[row].append(Cell(row, col, 10, '245', date_nice))
+            col += 12
 
             wt = Format.weight(self.weight[date_str])
             self.cells[row].append(Cell(row, col, 5, '15', wt)) 
@@ -220,7 +220,7 @@ class View:
         #header.print()
         for row, items in self.cells.items():
             if row == View.ROW_MAX:
-                today_str = datetime.date.today().strftime("%m/%d/%y")
+                today_str = datetime.date.today().strftime("%a %b %d")
                 if self.cells[row][0].str == today_str:
                     self.cells[row][0].color = '15'
             for item in self.cells[row]:
