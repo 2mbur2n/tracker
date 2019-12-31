@@ -140,10 +140,10 @@ class View:
     def plot(self, name):
         if name == 'weight':
             self.plot_field(self.weight, name)
-        elif name == 'duration':
-            self.plot_field(self.minutes, name) 
-        elif name == 'spending':
-            self.plot_field(self.spending, name)
+        #elif name == 'duration':
+        #    self.plot_field(self.minutes, name) 
+        #elif name == 'spending':
+        #    self.plot_field(self.spending, name)
         else:
             print(f'No such name: {name}')
 
@@ -203,17 +203,14 @@ class View:
             self.cells[row].append(Cell(row, col, 4, '11', mins)) 
             col += 5
 
-            mins_mean = Format.minutes(self.calc_mean(self.minutes, date))
-            self.cells[row].append(Cell(row, col, 4, '11;2', mins_mean)) 
+            dateobj = datetime.date(year=date.year, month=date.month, day=date.day)
+            mins_target = Format.minutes(self.calc_target('duration', dateobj))
+            self.cells[row].append(Cell(row, col, 4, '11;2', mins_target)) 
             col += 7
                         
             spend = Format.money(self.spending[date_str])
             self.cells[row].append(Cell(row, col, 7, '10', spend))    
             col += 8
-        
-            spend_mean = Format.money(self.calc_mean(self.spending, date))
-            self.cells[row].append(Cell(row, col, 7, '10;2', spend_mean))    
-            col += 9           
 
     def print_all(self):
         self.emit_all()
